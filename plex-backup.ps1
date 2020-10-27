@@ -154,4 +154,30 @@ Write-Host "Deleting temp file:"
 Write-Host " " $TempZipFileName
 Write-Host "from:"
 Write-Host " " $TempZipFileDir
-Remove-Item $TempZi
+Remove-Item $TempZipFilePath -Force
+
+# Start all previously running Plex services (if any).
+if ($PlexServices.Count -gt 0)
+{
+    Write-Host "Starting previously stopped Plex service(s):"
+    foreach ($PlexService in $PlexServices)
+    {
+        Write-Host " " $PlexService.Name
+    }
+    $PlexServices | Start-Service
+}
+
+# Get name of the Plex Media Server executable (just to see if it is running).
+$PlexServerExeName = Get-Process | 
+    Where-Object {$_.Path -match $PlexServerExeFileName + "$" } | 
+		Select-Object -ExpandProperty Name
+
+# Start Plex Media Server executable (if it is not running).
+if (!$PlexServerExeName -and $PlexServerExePath)
+{
+    Write-Host "Starting Plex Media Server process:"
+    Write-Host " " $PlexServerExeFileName
+    Start-Process $PlexServerExePath
+}
+
+Write-Host "Done."
